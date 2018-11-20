@@ -1,0 +1,54 @@
+version: '3'
+services:
+  nginx:
+    container_name: nginx_proxy
+    image: nginx:alpine
+    volumes:
+      - ./config/nginx/ssl:/etc/nginx/ssl
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - ghost
+    restart: always
+
+  ghost:
+    image: ghost:2.6-alpine
+    container_name: ghost_blog
+    restart: always
+#    ports:
+#      - 80:2368
+    depends_on:
+      - db
+    volumes:
+      /site/viqu.cn/public:/var/lib/ghost:rw
+    environment:
+      # see https://docs.ghost.org/docs/config#section-running-ghost-with-config-env-variables
+      node_env: "production"
+      url: "https://domain.cn"
+      database__client: "mysql"
+      database__connection__host: "db"
+      database__connection__database: "ghost"
+      database__connection__user: "ghost_conn"
+      database__connection__password: "ghost#1234"
+      mail__transport: "SMTP"
+      mail__from: "noreply <noreply@domain.cn>"
+      mail__options__host: "smtp.smtpserver.com"
+      mail__options__secureConnection: "true"
+      mail__options__port: 465
+      mail__options__auth__user: "noreply@domain.cn"
+      mail__options__auth__pass: "smtp_auth_password"
+
+  db:
+    image: mariadb:latest
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: "ghost"
+      MYSQL_USER: "ghost_conn"
+      MYSQL_PASSWORD: "ghost#1234"
+      MYSQL_ROOT_PASSWORD: "123456"
+    volumes:
+      - /var/lib/mysql:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
