@@ -4,7 +4,8 @@ services:
     container_name: nginx_proxy
     image: nginx:alpine
     volumes:
-      - ./config/nginx/ssl:/etc/nginx/ssl
+      - ./config/nginx/ssl:/etc/nginx/ssl:ro
+      - ./data/site/domain.cn/public:/var/log/nginx:rw
     ports:
       - "80:80"
       - "443:443"
@@ -21,7 +22,7 @@ services:
     depends_on:
       - db
     volumes:
-      /site/viqu.cn/public:/var/lib/ghost:rw
+      - ./data/site/domain.cn/content:/var/lib/ghost/content:rw
     environment:
       # see https://docs.ghost.org/docs/config#section-running-ghost-with-config-env-variables
       node_env: "production"
@@ -49,6 +50,6 @@ services:
       MYSQL_PASSWORD: "ghost#1234"
       MYSQL_ROOT_PASSWORD: "123456"
     volumes:
-      - /var/lib/mysql:/var/lib/mysql
+      - /var/lib/mysql:/var/lib/mysql:rw
       - /etc/localtime:/etc/localtime:ro
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
